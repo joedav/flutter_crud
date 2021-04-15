@@ -1,14 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_crud/components/user_tile.dart';
+import 'package:flutter_crud/models/user.dart';
 import 'package:flutter_crud/provider/users.dart';
 import 'package:flutter_crud/routes/app_routes.dart';
 import 'package:provider/provider.dart';
 
-class UserList extends StatelessWidget {
+class UserList extends StatefulWidget {
+  @override
+  _UserListState createState() => _UserListState();
+
+  List<User> userList;
+}
+
+class _UserListState extends State<UserList> {
+  @override
+  initState() {
+    super.initState();
+    var loadedUsers = getAll();
+    setState(() {
+      widget.userList = loadedUsers;
+    });
+  }
+
+  List<User> getAll() {
+    var teste = Provider.of<Users>(context).all;
+
+    return teste;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final Users users = Provider.of<Users>(context);
-
     return Scaffold(
       appBar: AppBar(
         title: Text('Lista de usuários'),
@@ -23,8 +44,9 @@ class UserList extends StatelessWidget {
         ],
       ),
       body: ListView.builder(
-          itemCount: users.count,
-          itemBuilder: (ctx, i) => UserTile(users.all.elementAt(i))),
+        itemCount: widget.userList.length,
+        itemBuilder: (ctx, i) => UserTile(widget.userList[i]),
+      ),
     );
   }
 }

@@ -25,12 +25,13 @@ class _UserFormState extends State<UserForm> {
 
   @override
   void didChangeDependencies() {
-    // TODO: implement didChangeDependencies
     super.didChangeDependencies();
 
     final User user = ModalRoute.of(context).settings.arguments;
     if (user != null) _loadUser(user);
   }
+
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -49,12 +50,17 @@ class _UserFormState extends State<UserForm> {
         actions: [
           IconButton(
             icon: Icon(Icons.save_outlined),
-            onPressed: () {
+            onPressed: () async {
               final bool isValid = _form.currentState.validate();
 
               if (isValid) {
                 _form.currentState.save();
-                Provider.of<Users>(context, listen: false).put(
+
+                setState(() {
+                  _isLoading = true;
+                });
+
+                await Provider.of<Users>(context, listen: false).put(
                   User(
                     id: _formData['id'],
                     name: _formData['name'],
@@ -63,6 +69,10 @@ class _UserFormState extends State<UserForm> {
                   ),
                 );
 
+                setState(() {
+                  _isLoading = false;
+                });
+
                 Navigator.of(context).pop();
               }
             },
@@ -70,61 +80,66 @@ class _UserFormState extends State<UserForm> {
           )
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Form(
-          key: _form,
-          child: ListView(
-            children: [
-              TextFormField(
-                initialValue: _formData['name'],
-                decoration: InputDecoration(
-                  labelText: 'Nome',
+      body: _isLoading
+          ? Center(
+              child: CircularProgressIndicator(),
+            )
+          : Padding(
+              padding: const EdgeInsets.all(20),
+              child: Form(
+                key: _form,
+                child: ListView(
+                  children: [
+                    TextFormField(
+                      initialValue: _formData['name'],
+                      decoration: InputDecoration(
+                        labelText: 'Nome',
+                      ),
+                      validator: (value) {
+                        if (value.isEmpty || value == null || value == '')
+                          return "Nome inválido";
+                        if (value.length < 3)
+                          return 'Nome deve conter no mínimo 3 caracteres';
+
+                        return null;
+                      },
+                      onSaved: (value) {
+                        _formData['name'] = value;
+                      },
+                    ),
+                    TextFormField(
+                      initialValue: _formData['email'],
+                      decoration: InputDecoration(labelText: 'Email'),
+                      validator: (value) {
+                        if (value.isEmpty || value == null || value == '')
+                          return "Email inválido";
+                        if (value.length < 7 ||
+                            !value.contains('@') ||
+                            !value.contains('.'))
+                          return 'Email deve conter @ e .';
+
+                        return null;
+                      },
+                      onSaved: (value) {
+                        _formData['email'] = value;
+                      },
+                    ),
+                    TextFormField(
+                      initialValue: _formData['avatarUrl'],
+                      decoration: InputDecoration(labelText: 'Avatar Url'),
+                      onSaved: (value) {
+                        _formData['avatarUrl'] = value;
+                      },
+                    ),
+                    Image(
+                      image: avatar,
+                      width: 250,
+                      height: 250,
+                    ),
+                  ],
                 ),
-                validator: (value) {
-                  if (value.isEmpty || value == null || value == '')
-                    return "Nome inválido";
-                  if (value.length < 3)
-                    return 'Nome deve conter no mínimo 3 caracteres';
-
-                  return null;
-                },
-                onSaved: (value) {
-                  _formData['name'] = value;
-                },
               ),
-              TextFormField(
-                initialValue: _formData['email'],
-                decoration: InputDecoration(labelText: 'Email'),
-                validator: (value) {
-                  if (value.isEmpty || value == null || value == '')
-                    return "Email inválido";
-                  if (value.length < 7 ||
-                      !value.contains('@') ||
-                      !value.contains('.')) return 'Email deve conter @ e .';
-
-                  return null;
-                },
-                onSaved: (value) {
-                  _formData['email'] = value;
-                },
-              ),
-              TextFormField(
-                initialValue: _formData['avatarUrl'],
-                decoration: InputDecoration(labelText: 'Avatar Url'),
-                onSaved: (value) {
-                  _formData['avatarUrl'] = value;
-                },
-              ),
-              Image(
-                image: avatar,
-                width: 250,
-                height: 250,
-              ),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 }
