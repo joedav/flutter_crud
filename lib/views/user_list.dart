@@ -9,27 +9,27 @@ class UserList extends StatefulWidget {
   @override
   _UserListState createState() => _UserListState();
 
-  List<User> userList;
+  bool isLoading = false;
 }
 
 class _UserListState extends State<UserList> {
   @override
   initState() {
     super.initState();
-    var loadedUsers = getAll();
     setState(() {
-      widget.userList = loadedUsers;
+      widget.isLoading = true;
     });
-  }
-
-  List<User> getAll() {
-    var teste = Provider.of<Users>(context).all;
-
-    return teste;
+    Provider.of<Users>(context, listen: false).loadUsers().then((value) => {
+          setState(() {
+            widget.isLoading = false;
+          })
+        });
   }
 
   @override
   Widget build(BuildContext context) {
+    Users provider = Provider.of(context);
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Lista de usuários'),
@@ -43,10 +43,14 @@ class _UserListState extends State<UserList> {
           )
         ],
       ),
-      body: ListView.builder(
-        itemCount: widget.userList.length,
-        itemBuilder: (ctx, i) => UserTile(widget.userList[i]),
-      ),
+      body: widget.isLoading
+          ? Center(
+              child: CircularProgressIndicator(),
+            )
+          : ListView.builder(
+              itemCount: provider.count,
+              itemBuilder: (ctx, i) => UserTile(provider.all[i]),
+            ),
     );
   }
 }

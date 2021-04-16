@@ -2,44 +2,59 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_crud/data/dummy_users.dart';
+// import 'package:flutter_crud/data/dummy_users.dart';
 import 'package:flutter_crud/models/user.dart';
 import 'package:http/http.dart' as http;
 
 class Users with ChangeNotifier {
   String _baseUrl = "https://flutter-crud-teste-default-rtdb.firebaseio.com/";
 
-  Map<String, User> _items = {...DUMMY_USERS};
+  Map<String, User> _items = {/*...DUMMY_USERS*/};
 
   List<User> get all {
-    final usersBackend = getAll();
-    _items.addAll(usersBackend);
+    //final usersBackend = getAll();
+    //_items.addAll(usersBackend);
 
     return [..._items.values];
   }
 
-  FutureOr<Map<String, User>> getAll() async {
-    final response = await http.get(Uri.parse("$_baseUrl/users.json"),
-        headers: {"Accept": "application/json"});
-    final Map<dynamic, dynamic> convertDataToJson =
-        json.decode(response.body) as Map<String, dynamic>;
-    Map<String, User> users = {};
-
-    convertDataToJson.forEach((key, value) {
-      users.addAll(
-        {
-          key: User(
-            id: key,
-            name: value["name"],
-            email: value["email"],
-            avatarUrl: value["avatarUrl"],
-          ),
-        },
-      );
+  Future<void> loadUsers() async {
+    final response = await http.get(Uri.parse("$_baseUrl/users.json"));
+    Map<String, dynamic> data = json.decode(response.body);
+    data.forEach((userId, userData) {
+      _items.addAll({
+        userId: User(
+          id: userId,
+          name: userData["name"],
+          email: userData["email"],
+          avatarUrl: userData["avatarUrl"],
+        )
+      });
     });
-
-    return users;
   }
+
+  // FutureOr<Map<String, User>> getAll() async {
+  //   final response = await http.get(Uri.parse("$_baseUrl/users.json"),
+  //       headers: {"Accept": "application/json"});
+  //   final Map<dynamic, dynamic> convertDataToJson =
+  //       json.decode(response.body) as Map<String, dynamic>;
+  //   Map<String, User> users = {};
+
+  //   convertDataToJson.forEach((key, value) {
+  //     users.addAll(
+  //       {
+  //         key: User(
+  //           id: key,
+  //           name: value["name"],
+  //           email: value["email"],
+  //           avatarUrl: value["avatarUrl"],
+  //         ),
+  //       },
+  //     );
+  //   });
+
+  //   return users;
+  // }
 
   int get count {
     return _items.length;

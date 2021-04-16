@@ -42,10 +42,7 @@ class UserTile extends StatelessWidget {
                   context: context,
                   builder: (ctx) => AlertDialog(
                     title: Text('Confirmação de exclusão'),
-                    content: Text('Tem certeza que deseja excluir o usuário: ' +
-                        user.id +
-                        ' - ' +
-                        user.name),
+                    content: Text("Tem certeza que deseja excluir o usuário: ${user.name}"),
                     actions: <Widget>[
                       TextButton(
                         child: Text('Sim'),
